@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.mapper.RegistrationMapper">
+
+	<resultMap type="RegistrationInfor" id="registrationListMap">
+		<id column="medicalRecord" property="medicalRecord"></id>
+		<id column="time"  property="time"/>
+		<result column="status" property="status"/>
+		<association property="doctor" javaType="Doctor">
+			<result column="name" property="name"/>
+		</association>
+		<association property="section" javaType="Section">
+			<result column="seccpNum" property="seccpNum"/>
+			<result column="seccoName" property="seccoName"/>
+		</association>
+	</resultMap>
+
+	<select id="registrationList" resultMap="registrationListMap" parameterType="map">
+		SELECT
+			ri.medical_record medicalRecord,
+			s.seccp_num seccpNum,
+			d.name name,
+			ri.time time,
+			s.secco_name seccoName,
+			ri.status status
+		FROM
+			section s,
+			registration_infor ri,
+			doctor d
+		<where>
+			ri.section_id = s.id
+				AND ri.doctor_id = d.id
+			<if test="doctor != '' and doctor != null">
+				 and d.name like '%${doctor}%' and ri.section_id = s.id
+				AND ri.doctor_id = d.id
+			</if>
+			<if test="start != null and start != '' and end != null and end != ''">
+				and ri.time &lt;= #{end} and ri.time &gt;= #{start}
+			</if>
+			<if test="medical != null and medical != ''">
+				and ri.medical_record = #{medical}
+			</if>
+			<if test="section != null and section != ''">
+				and ri.section_id = ${section}
+			</if>
+		</where>
+	</select>
+	
+	<select id="getCount" resultType="int" parameterType="map">
+		select count(*) from registration_infor ri,doctor d,section s
+		<where>
+				ri.section_id = s.id
+				AND ri.doctor_id = d.id
+			<if test="doctor != '' and doctor != null">
+				 and d.name like '%${doctor}%' and ri.section_id = s.id
+				AND ri.doctor_id = d.id
+			</if>
+			<if test="start != null and start != '' and end != null and end != ''">
+				and ri.time &lt;= #{end} and ri.time &gt;= #{start}
+			</if>
+			<if test="medical != null and medical != ''">
+				and ri.medical_record = #{medical}
+			</if>
+			<if test="section != null and section != ''">
+				and ri.section_id = ${section}
+			</if>
+		</where>
+	</select>
+	
+	<resultMap type="RegistrationInfor" id="registrationDetailMap">
+		<result column="name" property="name"/>
+		<result column="num" property="idNum"/>
+		<result column="rf" property="registrationFee"/>
+		<result column="ssn" property="socialSafeNum"/>
+		<result column="phone" property="phone"/>
+		<result column="sp" property="selfPaying"/>
+		<result column="sex" property="sex"/>
+		<result column="age" property="age"/>
+		<result column="career" property="career"/>
+		<result column="ea" property="earlyAppointment"/>
+		<result column="noted" property="noted"/>
+		<association property="section" javaType="Section">
+			<id column="sid" property="id"/>
+			<result column="sname" property="seccoName"/>
+			<result column="snum" property="seccpNum" />
+		</association>
+		<association property="doctor" javaType="Doctor">
+			<result column="dname" property="name"/>
+			<result column="did" property="id"/>
+		</association>
+		<association property="cerfiType" javaType="CertificateType">
+			<result column="cname" property="name"/>
+			<result column="cid" property="id"/>
+		</association>
+	</resultMap>
+	
+	<select id="registrationDetail" parameterType="map" resultMap="registrationDetailMap">
+		SELECT
+			ri.name name,
+			ct.id cid,
+			ct.name cname,
+			ri.ID_num num,
+			ri.registration_fee rf,
+			ri.social_safe_num ssn,
+			ri.phone phone,
+			ri.self_paying sp,
+			ri.sex sex,
+			ri.age age,
+			ri.career career,
+			ri.early_appointment ea,
+			s.secco_name sname,
+			s.seccp_num snum,
+			s.id sid,
+			d. NAME dname,
+			d.id did,
+			ri.noted noted
+		FROM
+			section s,
+			registration_infor ri,
+			doctor d,
+			certificate_type ct
+		WHERE
+			ri.doctor_id = d.id
+		AND ri.section_id = s.id
+		AND ri.certificate_type = ct.id
+		AND ri.medical_record = #{record}
+	</select>
+	<update id="registrationEditt" parameterType="RegistrationInfor">
+		UPDATE registration_infor
+		SET NAME = #{name}, certificate_type=${certificateType},ID_num=#{idNum},
+		registration_fee = #{registrationFee},
+		section_id = #{sectionId},
+		social_safe_num = #{socialSafeNum},phone = #{phone},self_paying=#{selfPaying},sex=#{sex},career=#{career}, early_appointment=#{earlyAppointment},doctor_id=#{doctorId},noted=#{noted}
+		WHERE medical_record = #{medicalRecord};
+	</update>
+	<update id="registrationDelete" parameterType="String">
+		update registration_infor set status = "已出院" where medical_record = #{value};
+	</update>
+	<update id="registrationDeleteAll" parameterType="List">
+		update registration_infor set status = "已出院" where medical_record in
+		<foreach collection="list" open="(" close=")" separator="," index="i">
+			'${list[i]}'
+		</foreach>
+	</update>
+	<insert id="registrationAdd" parameterType="RegistrationInfor">
+		insert into registration_infor (medical_record,name,certificate_type,ID_num,social_safe_num,phone,self_paying,sex,career,early_appointment,doctor_id,status,noted,time,section_id,age,registration_fee) 
+		values(#{medicalRecord},#{name},#{certificateType},#{idNum},#{socialSafeNum},#{phone},#{selfPaying},#{sex},#{career},#{earlyAppointment},#{doctorId},#{status},#{noted},#{time},#{sectionId},#{age},#{registrationFee})
+	</insert>
+	<insert id="AddhospitalInfo" parameterType="String">
+		insert into hospital_infor (medical_record) value (#{value})
+	</insert>
+	<delete id="deletehospitalInfor" parameterType="String">
+		delete from hospital_infor where medical_record = #{record}
+	</delete>
+	<delete id="deletehospitalInforAll" parameterType="list">
+		delete from hospital_infor where medical_record in
+		<foreach collection="list" open="(" close=")" separator="," index="i">
+			'${list[i]}'
+		</foreach>
+	</delete>
+</mapper>

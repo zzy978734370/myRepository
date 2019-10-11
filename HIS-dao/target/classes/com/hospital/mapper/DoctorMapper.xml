@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.mapper.DoctorMapper">
+		<resultMap type="Doctor" id="doctorListMap">
+			<id column="id" property="id"></id>
+			<result column="name" property="name"/>
+			<result column="num" property="idNum"/>
+			<result column="phone" property="phone"/>
+			<result column="sex" property="sex"/>
+			<result column="age" property="age"/>
+			<result column="birther" property="birther"/>
+			<result column="email" property="email"/>
+			<result column="noted" property="noted"/>
+			<result column="time" property="time"/>
+			<association property="certiType" javaType="CertificateType">
+				<result column="cname" property="name"/>
+			</association>
+			<association property="section" javaType="Section">
+				<result column="seccpNum" property="seccpNum"/>
+				<result column="seccoName" property="seccoName"/>
+			</association>
+		</resultMap>
+		
+   		<select id="doctorList" resultMap="doctorListMap">
+   			SELECT
+				d.id id,
+				d. NAME name,
+				ct. NAME cname,
+				d.ID_num num,
+				d.phone phone,
+				d.sex sex,
+				d.age age,
+				d.birther birther,
+				d.email email,
+				s.seccp_num seccpNum,
+				s.secco_name seccoName,
+				d.education education,
+				d.noted noted,
+				d.time time
+			FROM
+				doctor d,
+				section s,
+				certificate_type ct
+			<where>
+				d.section_id = s.id  AND d.certificate_type = ct.id
+				<choose>
+   					<when test="name != null and name != ''">
+   							and  d.name = #{name}
+   						<if test="did != 0 and did != ''">
+   							 and d.id = ${did}
+   						</if>
+   						<if test="seccoName != null and seccoName != ''">
+   							 and s.secco_name = #{seccoName}
+   						</if>
+   					</when>
+   					<when test="seccoName != null and seccoName != ''">
+   						and  s.secco_name = #{seccoName} 
+	   					<if test="did != 0 and did != ''">
+	   						 and d.id = ${did}
+	   					</if>
+	   					<if test="name != null and name != ''">
+	   						 and d.name = #{name
+	   					</if>
+   					</when>
+   					<when test="did != 0 and did != ''">
+   						 and d.id = ${did} 
+   						 <if test="name != null and name != ''">
+   						 and d.name = #{name}
+	   					</if>
+	   					<if test="seccoName != null and seccoName != ''">
+	   						 and s.secco_name =#{seccoName}
+	   					</if>
+   					</when>
+   				</choose>
+			</where>
+		</select>
+   		<select id="doctorCount" parameterType="map" resultType="int">
+   			select count(*) from doctor d, section s
+   			<where>
+   			  d.section_id = s.id
+   				<choose>
+   					<when test="name != null and name != ''">
+   							and  d.name = #{name}
+   						<if test="did != 0 and did != ''">
+   							 and d.id = ${did}
+   						</if>
+   						<if test="seccoName != null and seccoName != ''">
+   							 and s.secco_name = #{seccoName}
+   						</if>
+   					</when>
+   					<when test="seccoName != null and seccoName != ''">
+   						and  s.secco_name = #{seccoName} 
+	   					<if test="did != 0 and did != ''">
+	   						 and d.id = ${did}
+	   					</if>
+	   					<if test="name != null and name != ''">
+	   						 and d.name = #{name}
+	   					</if>
+   					</when>
+   					<when test="did != 0 and did != ''">
+   						 and d.id = ${did} 
+   						 <if test="name != null and name != ''">
+   						 and d.name = #{name}
+	   					</if>
+	   					<if test="seccoName != null and seccoName != ''">
+	   						 and s.secco_name =#{seccoName}
+	   					</if>
+   					</when>
+   				</choose>
+   			</where>
+   		</select>
+   		
+   		<resultMap type="Doctor" id="doctorLookMap">
+   			<id column="did" property="id"/>
+   			<result column="dname" property="name"/>
+   			<result column="idNum" property="idNum"/>
+   			<result column="phone" property="phone"/>
+   			<result column="specialPlane" property="specialPlane"/>
+   			<result column="sex" property="sex"/>
+   			<result column="age" property="age"/>
+   			<result column="birther" property="birther"/>
+   			<result column="email" property="email"/>
+   			<result column="education" property="education"/>
+   			<result column="noted" property="noted"/>
+   			<result column="sectionId" property="sectionId"/>
+   			<result column="certificateType" property="certificateType"/>
+   			<association property="section" javaType="Section">
+   				<id column="sid" property="id"/>
+   				<result column="seccoName" property="seccoName" />
+   				<result column="seccpNum" property="seccpNum" />
+   			</association>
+   			<association property="certiType" javaType="CertificateType">
+   				<id column="ctid" property="id"/>
+   				<id column="ctname" property="name"/>
+   			</association>
+   		</resultMap>
+   		
+   		<select id="doctorLook" parameterType="int" resultMap="doctorLookMap">
+   			SELECT
+				d. NAME dname,
+				d.id did,
+				ct.id ctid,
+				ct.name ctname,
+				d.ID_num idNum,
+				d.phone phone,
+				d.special_plane specialPlane,
+				d.sex sex,
+				d.age age,
+				d.birther birther,
+				d.email email,
+				s.id sid,
+				s.secco_name seccoName,
+				s.seccp_num seccpNum,
+				d.education education,
+				d.noted noted,
+				d.section_id sectionId,
+				d.certificate_type certificateType
+			FROM
+				doctor d,
+				section s,
+				certificate_type ct
+			WHERE
+				d.id = #{id} and
+				d.section_id = s.id and
+				d.certificate_type = ct.id
+   		</select>
+   		<update id="updateDoctorById" parameterType="Doctor">
+   			UPDATE 
+   				doctor
+			SET 
+				NAME = #{name},
+				certificate_type=#{certificateType},
+				ID_num=#{idNum},
+				phone =#{phone},
+				special_plane = #{specialPlane},
+				sex=#{sex},
+				age=#{age},
+				birther=#{birther},
+				email=#{email},
+				section_id=#{sectionId},
+				education=#{education},
+				noted=#{noted} 
+			WHERE 
+				id = #{id}  
+   		</update>
+   		<insert id="doctorAdd" parameterType="Doctor">
+   			INSERT INTO doctor (
+				name,
+				certificate_type,
+				ID_num,
+				phone,
+				special_plane,
+				sex,
+				age,
+				birther,
+				email,
+				section_id,
+				education,
+				noted,
+				time
+			)
+			VALUES
+				(
+				#{name},
+				#{certificateType},
+				#{idNum},
+				#{phone},
+				#{specialPlane},
+				#{sex},
+				#{age},
+				#{birther},
+				#{email},
+				#{sectionId},
+				#{education},
+				#{noted},
+				#{time}
+				);
+   		</insert>
+</mapper>

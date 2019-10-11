@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hospital.mapper.MedicineMapper">
+
+	<resultMap type="Drug" id="medicineListMap">
+		<id column="dnum" property="drugNum"/>
+		<result column="dname" property="drugName"/>
+		<result column="dnoted" property="noted"/>
+		<result column="surplus" property="surplus"/>
+		<association property="dsstatus" javaType="DrugStatus">
+			<result column="sstatus" property="status"/>
+		</association>
+		<association property="dttype" javaType="DrugType">
+			<result property="type" column="ttype"/>
+		</association>
+	</resultMap>
+	<select id="medicineList" parameterType="map" resultMap="medicineListMap">
+		SELECT
+			d.drug_num dnum,
+			d.drug_name dname,
+			dt.type ttype,
+			d.noted dnoted,
+			ds.status sstatus,
+			d.surplus
+		FROM
+			drug d,
+			drug_type dt,
+			drug_status ds
+		<where>
+				d. STATUS = ds.id
+			AND 
+				d.drug_type = dt.id 
+			<choose>
+				<when test="name != null and name != ''">
+					and d.drug_name = #{name}
+				</when>
+				<when test="type != null and type != ''">
+					and d.drug_type = ${type}
+				</when>
+			</choose>
+		</where>
+	</select>
+	<select id="medicineCount" parameterType="map" resultType="int">
+		select count(*) from drug d,
+			drug_type dt,
+			drug_status ds 
+		<where>
+				d. STATUS = ds.id
+			AND 
+				d.drug_type = dt.id 
+			<choose>
+				<when test="name != null and name != ''">
+					and d.drug_name = #{name}
+				</when>
+				<when test="type != null and type != ''">
+					and d.drug_type = ${type}
+				</when>
+			</choose>
+		</where>
+	</select>
+	<select id="getDrugType" resultType="DrugType">
+		select * from drug_type;
+	</select>
+	<!-- 药瓶详情 -->
+	<resultMap type="Drug" id="medicineDetialMap">
+		<id column="dnum" property="drugNum" />
+		<result column="durl" property="drugUrl"/>
+		<result column="dpp" property="purchasPrice"/>
+		<result column="dsalePrice" property="salePrice"/>
+		<result column="dname" property="drugName"/>
+		<result column="dtype" property="drugType"/>
+		<result column="dsimpleDetail" property="simpleDetail"/>
+		<result column="dprodecedDate" property="prodecedDate"/>
+		<result column="dexpirationDate" property="expirationDate"/>
+		<result column="dqualityDate" property="qualityDate"/>
+		<result column="ddatail" property="detail"/>
+		<result column="dmanufacture" property="manufacture"/>
+		<result column="duseInfo" property="useInfor"/>
+		<result column="dtotalStock" property="totalStock"/>
+		<result column="dsurplus" property="surplus"/>
+		<result column="dstatus" property="status"/>
+		<result column="dnoted" property="noted"/>
+		<association property="dsstatus" javaType="DrugStatus">
+			<id column="sid" property="id"/>
+			<id column="sstatus" property="status"/>
+		</association>
+		<association property="dttype" javaType="DrugType">
+			<id column="tid" property="id"/>
+			<id column="ttype" property="type"/>
+		</association>
+	</resultMap>
+	<select id="medicineDetial" parameterType="String" resultMap="medicineDetialMap">
+		select 
+			d.drug_num dnum,
+			d.drug_url durl,
+			d.purchas_price dpp,
+			d.sale_price dsalePrice,
+			d.drug_name dname,
+			d.drug_type dtype,
+			d.simple_detail dsimpleDetail,
+			d.prodeced_date dprodecedDate,
+			d.expiration_date dexpirationDate,
+			d.quality_date dqualityDate,
+			d.detail ddatail,
+			d.manufacture dmanufacture,
+			d.use_infor duseInfo,
+			d.total_stock dtotalStock,
+			d.surplus dsurplus,
+			d.status dstatus,
+			d.noted dnoted,
+			s.id sid,
+			s.status sstatus,
+			t.id tid,
+			t.type ttype
+			from drug d,drug_status s,drug_type t
+			where d.drug_type = t.id and d.status = s.id and d.drug_num=#{value}
+	</select>
+	<update id="drugEdit" parameterType="Drug">
+	<choose>
+		<when test="drugUrl != null and drugUrl != ''">
+			update drug
+				SET 
+					drug_url = #{drugUrl},
+					purchas_price = #{purchasPrice},
+					sale_price = #{salePrice},
+					drug_name = #{drugName},
+					drug_type = #{drugType},
+					simple_detail = #{simpleDetail},
+					prodeced_date = #{prodecedDate},
+					expiration_date = #{expirationDate},
+					quality_date = #{qualityDate},
+					detail = #{detail},
+					manufacture =#{manufacture},
+					use_infor = #{useInfor},
+					total_stock = #{totalStock},
+					surplus = #{surplus},
+					status = #{status},
+					noted = #{noted}
+				WHERE
+					drug_num = #{ drugNum }
+		</when>
+		<otherwise>
+		update drug
+				SET 
+					purchas_price = #{purchasPrice},
+					sale_price = #{salePrice},
+					drug_name = #{drugName},
+					drug_type = #{drugType},
+					simple_detail = #{simpleDetail},
+					prodeced_date = #{prodecedDate},
+					expiration_date = #{expirationDate},
+					quality_date = #{qualityDate},
+					detail = #{detail},
+					manufacture =#{manufacture},
+					use_infor = #{useInfor},
+					total_stock = #{totalStock},
+					surplus = #{surplus},
+					status = #{status},
+					noted = #{noted}
+				WHERE
+					drug_num = #{ drugNum }
+		</otherwise>
+	</choose>
+</update>
+<insert id="medicineAdd" parameterType="Drug">
+	INSERT INTO drug (
+		drug_num,
+		drug_url,
+		purchas_price,
+		sale_price,
+		drug_name,
+		drug_type,
+		simple_detail,
+		prodeced_date,
+		expiration_date,
+		quality_date,
+		detail,
+		manufacture,
+		use_infor,
+		total_stock,
+		surplus,
+		STATUS,
+		noted
+	)
+	VALUES
+		(
+		#{drugNum},
+		#{drugUrl},
+		#{purchasPrice},
+		#{salePrice},
+		#{drugName},
+		#{drugType},
+		#{drugType},
+		#{prodecedDate},
+		#{expirationDate},
+		#{qualityDate},
+		#{detail},
+		#{manufacture},
+		#{useInfor},
+		#{totalStock},
+		#{surplus},
+		#{status},
+		#{noted}
+		);
+</insert>
+</mapper>
